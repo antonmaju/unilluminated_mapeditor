@@ -1,0 +1,15 @@
+{
+    "name": "unilluminated-mapeditor",
+    "version": "0.0.1",
+    "description": "Map editor for unilluminated",
+    "private": true,
+    "scripts": {
+        "start": "node app"
+    },
+    "dependencies": {
+        "express": "3.0.6",
+        "jade": "*",
+        "less-middleware": "= 0.1.8",
+        "nconf" : ">= 0.6.7"
+    }
+}
