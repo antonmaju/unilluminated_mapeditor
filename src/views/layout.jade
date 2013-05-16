@@ -7,11 +7,13 @@ html
             |The Unilluminated - Map Editor
 
         != html.cssLoader(['/bootstrap/css/bootstrap.min.css','/stylesheets/site.css'])
+        script(src='/js/jquery-2.0.0.min.js')
         block privateCss
 
     body
 
         block content
 
-        script(src='http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.0.min.js')
+
+        != html.jsLoader(['/bootstrap/js/bootstrap.min.js'])
         block privateJs

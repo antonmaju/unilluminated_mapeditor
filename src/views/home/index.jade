@@ -1,15 +1,29 @@
 extends ../layout
 
+block privateCss
+    != html.jsLoader(['/js/angular.min.js','/js/index.js'])
 
 block content
-    .container-fluid
-        .row-fluid
-            .span2
-                ul.nav.nav-tabs.nav-stacked
-                    li
-                        a Test 1
-                    li
-                        a Test 2
 
-            .span10
-                span Right pane
+    .container
+
+        .navbar
+            .navbar-inner
+                ul.nav
+                    li.dropdown
+                        a.dropdown-toggle(data-toggle="dropdown", href="#") Maps
+                        ul.dropdown-menu.menu
+                            each map in model.files
+                                li
+                                    a
+                                        !=map
+
+                ul.nav.pull-right
+                    li
+                        a
+                            i.icon-ok
+
+        div
+            include areaTypes
+
+
