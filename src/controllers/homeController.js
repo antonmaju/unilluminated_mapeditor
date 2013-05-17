@@ -4,44 +4,68 @@ var controllerHelper = require('../core/controllerHelpers'),
     q = require('q'),
     AreaTypes = require('../core/game/areaTypes'),
     ImageSource = require('../core/game/imageSource'),
-    AssetFiles = require('../core/game/assetFiles');
+    AssetFiles = require('../core/game/assetFiles'),
+    Filters = require('../core/game/filters');
 
+/**
+ * Populate area types with asset information
+ * @return {Object}
+ */
+function populateAreaTypes(){
+    var model = {};
+    for(var areaProp in AreaTypes){
+        var areaTypeInfo = AreaTypes[areaProp];
+        if(! areaTypeInfo.srcKey) continue;
+        var imageSource = ImageSource[areaTypeInfo.srcKey];
+        var bgSource = null;
 
-var AreaModel = {};
-for(var areaProp in AreaTypes){
-    var areaTypeInfo = AreaTypes[areaProp];
-    if(! areaTypeInfo.srcKey) continue;
-    var imageSource = ImageSource[areaTypeInfo.srcKey];
-    var bgSource = null;
+        if(areaTypeInfo.bgKey)
+            bgSource = ImageSource[areaTypeInfo.bgKey];
 
-    if(areaTypeInfo.bgKey)
-        bgSource = ImageSource[areaTypeInfo.bgKey];
+        if(! imageSource) continue;
 
-    if(! imageSource) continue;
+        var imageFile = null;
 
-    var imageFile = null;
-
-    for(var i=0; i<AssetFiles.length;i++){
-        if(AssetFiles[i].key == imageSource.src){
-            imageFile = AssetFiles[i].src;
+        for(var i=0; i<AssetFiles.length;i++){
+            if(AssetFiles[i].key == imageSource.src){
+                imageFile = AssetFiles[i].src;
+            }
         }
-    }
-    AreaModel[areaProp] = {
-        desc :areaTypeInfo.desc,
-        isWalkable:areaTypeInfo.isWalkable,
-        srcWidth: imageSource.width,
-        srcHeight: imageSource.height,
-        srcTop: imageSource.top,
-        srcUrl: imageFile
-    };
+        model[areaProp] = {
+            id: areaProp,
+            desc :areaTypeInfo.desc,
+            isWalkable:areaTypeInfo.isWalkable,
+            srcWidth: imageSource.width,
+            srcHeight: imageSource.height,
+            srcTop: imageSource.top,
+            srcUrl: imageFile
+        };
 
-    if(bgSource)
-    {
-        AreaModel[areaProp].bgHeight = bgSource.height;
-        AreaModel[areaProp].bgWidth = bgSource.width;
-        AreaModel[areaProp].bgTop = bgSource.top;
-    }
+        if(bgSource)
+        {
+            model[areaProp].bgHeight = bgSource.height;
+            model[areaProp].bgWidth = bgSource.width;
+            model[areaProp].bgTop = bgSource.top;
+        }
+    };
+    return model;
 }
+
+/**
+ * Populate list of available filter
+ * @return {Array}
+ */
+function populateFilters(){
+    var filters = [];
+    for(var prop in Filters)
+    {
+        filters.push(prop);
+    }
+    return filters;
+}
+
+var AreaModel = populateAreaTypes();
+var filters = populateFilters();
 
 module.exports ={
     index: {
@@ -64,6 +88,7 @@ module.exports ={
                 then(function(files){
                     model.files = files;
                     model.areaTypes = AreaModel;
+                    model.filters = filters;
                     controllerHelper.renderView('home/index', model, req, resp);
                 }, function(reason){
                     next(reason);

@@ -4,15 +4,15 @@ block privateCss
     != html.jsLoader(['/js/angular.min.js','/js/index.js'])
 
 block content
-
-    .container
-
+    .container(ng-controller="MapController")
         .navbar
             .navbar-inner
                 ul.nav
                     li.dropdown
                         a.dropdown-toggle(data-toggle="dropdown", href="#") Maps
                         ul.dropdown-menu.menu
+                            li
+                                a(href='') New Map
                             each map in model.files
                                 li
                                     a
@@ -20,10 +20,39 @@ block content
 
                 ul.nav.pull-right
                     li
-                        a
-                            i.icon-ok
+                        a   Save
+
+        div
+            form.form-horizontal
+                fieldset
+                    .control-group
+                        label.control-label Id
+                        .controls
+                            input#name(type="text", id="id",ng-model="map.name",required)
+                    .control-group
+                        label.control-label Row
+                        .controls
+                            input#map-row(type="number", min="10", max="90", ng-model="map.row" )
+                    .control-group
+                        label.control-label Column
+                        .controls
+                            input#map-column(type="number",min="10", max="90", ng-model="map.column")
+
+                    .control
+                        label.control-label Filter
+                        .controls
+                            select#filter(ng-model='map.filter')
+                                option(value='') Choose filter
+                                each filter in model.filters
+                                    option(value=filter)
+                                        =filter
+
+                    br
 
         div
             include areaTypes
 
+        #map-wrapper
+            canvas#map
+            #map-table
 
