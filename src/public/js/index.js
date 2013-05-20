@@ -4,6 +4,10 @@
     var defaultAreaType = 1;
     var gridSize =32;
 
+    /**
+     * Initialize ul containing area types
+     * @param bgImg
+     */
     function initAreaCanvas(bgImg){
 
         $('.area').each(function(index, el){
@@ -30,30 +34,8 @@
         });
     }
 
-
-
-    function redrawMap(model){
-
-        var map = document.getElementById('map');
-        var mapContext = map.getContext('2d');
-        //mapContext.clearRect(0,0,map.width,map.height);
-        for(var i=0; i<model.row; i++)
-        {
-            for(var j=0; j<model.column; j++)
-            {
-                var type = model.grid[i][j];
-                var $areaCanvas = $('#area'+type);
-
-                if($areaCanvas.length == 0) continue;
-                var areaCanvas = $areaCanvas[0];
-                mapContext.drawImage(areaCanvas,0,0,toolIconWidth,toolIconWidth,j*gridSize,i*gridSize,gridSize,gridSize);
-            }
-        }
-    }
-
     angular.module('MapEditor',[])
         .factory('MapService', function($http){
-
             return {
                 load : function(name){
 
@@ -84,7 +66,11 @@
             $scope.map = MapService.createNew();
             $scope.selectedArea = 0;
 
-            function adjustMapTable(model){
+            var map = document.getElementById('map');
+            var mapContext = map.getContext('2d');
+
+            function adjustMapTable(){
+                var model = $scope.map;
                 var newWidth = model.column * gridSize;
                 var newHeight = model.row  * gridSize;
 
@@ -101,19 +87,92 @@
                     }
 
                     $mapTable.append($compile( $tr.html())($scope));
-
-                    //$mapTable.append($tr);
                 }
             }
 
-            function adjustMapSize(model){
-                var newWidth = model.column * gridSize;
-                var newHeight = model.row  * gridSize;
-                $('#map-wrapper').height(newHeight+2);
-                $('#map').attr('width', newWidth).attr('height', newHeight);
-                adjustMapTable(model);
+            function redrawMap(){
+                var model = $scope.map;
+                mapContext.clearRect(0,0,map.width,map.height);
+                for(var i=0; i<model.row; i++)
+                {
+                    for(var j=0; j<model.column; j++)
+                    {
+                        var type = model.grid[i][j];
+                        var $areaCanvas = $('#area'+type);
+
+                        if($areaCanvas.length == 0) continue;
+                        var areaCanvas = $areaCanvas[0];
+                        mapContext.drawImage(areaCanvas,0,0,toolIconWidth,toolIconWidth,j*gridSize,i*gridSize,gridSize,gridSize);
+                    }
+                }
             }
 
+            function adjustMapSize(){
+                var newWidth = $scope.map.column * gridSize;
+                var newHeight = $scope.map.row  * gridSize;
+                $('#map-wrapper').height(newHeight+2);
+                $(map).attr('width', newWidth).attr('height', newHeight);
+
+            }
+
+            function adjustMapData(){
+                var model = $scope.map;
+                var oldRow =model.grid.length;
+                var oldColumn = model.grid[0].length;
+
+                for(var i=0; i < model.grid.length; i++)
+                {
+                    if(oldColumn < model.column)
+                    {
+                        for(var j=oldColumn; j< model.column; j++)
+                        {
+                            model.grid[i].push(defaultAreaType);
+                        }
+                    }
+                    else
+                    {
+                        for(var j= oldColumn; j> model.column; j--)
+                        {
+                            model.grid[i].pop();
+                        }
+                    }
+                }
+
+                if(oldRow < model.row)
+                {
+                    for(var i =oldRow; i< model.row; i++)
+                    {
+                        model.grid.push([]);
+                        for(var j=0; j<model.column; j++)
+                        {
+                            model.grid[i].push(defaultAreaType);
+                        }
+                    }
+                }
+                else if(oldRow > model.row)
+                {
+                    for(var i= oldRow; i> model.row; i--)
+                    {
+                        model.grid.pop();
+                    }
+                }
+            }
+
+            function adjustMap(){
+                var model = $scope.map;
+
+                if(model.row == undefined || model.column == undefined || model.row < 10 || model.row > 90 ||
+                    model.column < 10 || model.column > 90)
+                {
+                    return;
+                }
+
+
+                adjustMapSize();
+                adjustMapTable();
+                adjustMapData();
+                redrawMap();
+            }
 
             $scope.selectAreaType = function(pos){
                 $scope.selectedArea = pos;
@@ -122,20 +181,27 @@
             $scope.fillMap = function(row, col){
                 if($scope.selectedArea == 0)
                     return;
-                var context = document.getElementById('map').getContext('2d');
+
+                $scope.map.grid[row][col]=$scope.selectedArea;
                 var areaCanvas = document.getElementById('area'+$scope.selectedArea);
-                context.drawImage(areaCanvas,0,0, toolIconWidth, toolIconWidth, col * gridSize, row * gridSize,
+                mapContext.clearRect(col * gridSize, row * gridSize,gridSize,gridSize);
+                mapContext.drawImage(areaCanvas,0,0, toolIconWidth, toolIconWidth, col * gridSize, row * gridSize,
                 gridSize, gridSize);
             };
 
-            adjustMapSize($scope.map);
 
             var bgImg = document.createElement('img');
             bgImg.src='/images/game/bg_sprite.gif';
             bgImg.onload =  function(){
                 initAreaCanvas(bgImg);
-                redrawMap($scope.map);
+                adjustMap();
+
+                $scope.$watch('[map.row, map.column] | json', function(){
+                    adjustMap();
+                });
             };
+
+
 
         });
 

@@ -94,5 +94,27 @@ module.exports ={
                     next(reason);
                 });
         }
+    },
+    map :{
+        route:'/maps/:id',
+        method: 'get',
+        handler: function(req, resp, next){
+            var id =req.params.id;
+
+            if(! id)
+            {
+                resp.status(404).send('Not found');
+                return;
+            }
+
+            try{
+                delete require.cache[require.resolve('../core/game/maps/'+id+'.js')];
+                resp.json(require('../core/game/maps/'+id));
+            }
+            catch (e)
+            {
+                next(e);
+            }
+        }
     }
 };
