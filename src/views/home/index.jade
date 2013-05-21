@@ -11,11 +11,12 @@ block content
                     li.dropdown
                         a.dropdown-toggle(data-toggle="dropdown", href="#") Maps
                         ul.dropdown-menu.menu
-                            li
-                                a(href='') New Map
+                            li(ng-class='{active: map.isExisting == false}')
+                                a(ng-click='newMap()') New Map
                             each map in model.files
-                                li
-                                    a
+                                mapId = map.toLowerCase().replace('.js','')
+                                li(ng-class='{active :map.id.toLowerCase() == \''+ mapId +'\'}')
+                                    a(ng-click='loadMap(\''+mapId+'\')')
                                         !=map
 
                 ul.nav.pull-right
@@ -28,7 +29,7 @@ block content
                     .control-group
                         label.control-label Id
                         .controls
-                            input#name(type="text", id="id",ng-model="map.name",required)
+                            input#name(type="text", id="id",ng-model="map.id",required, ng-readonly="map.isExisting")
                     .control-group
                         label.control-label Row
                         .controls

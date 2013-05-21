@@ -35,10 +35,10 @@
     }
 
     angular.module('MapEditor',[])
-        .factory('MapService', function($http){
+        .factory('MapService', ['$http', function($http){
             return {
-                load : function(name){
-
+                get : function(id){
+                    return $http.get('/maps/'+id.toLowerCase());
                 },
                 createNew : function(){
                     var model = {
@@ -46,7 +46,8 @@
                         column:10,
                         row:10,
                         grid:[],
-                        filter:'none'
+                        filter:'none',
+                        isExisting : false
                     };
 
                     for(var i=0; i<model.row; i++)
@@ -58,11 +59,15 @@
                         }
                     }
                     return model;
+                },
+                save : function(data){
+                    return $http.post('/maps/'+data.id,
+                        {params:data});
                 }
             }
 
-        })
-        .controller('MapController', function($scope, $compile, MapService){
+        }])
+        .controller('MapController',['$scope', '$compile','MapService', function($scope, $compile, MapService){
             $scope.map = MapService.createNew();
             $scope.selectedArea = 0;
 
@@ -112,7 +117,6 @@
                 var newHeight = $scope.map.row  * gridSize;
                 $('#map-wrapper').height(newHeight+2);
                 $(map).attr('width', newWidth).attr('height', newHeight);
-
             }
 
             function adjustMapData(){
@@ -163,10 +167,7 @@
 
                 if(model.row == undefined || model.column == undefined || model.row < 10 || model.row > 90 ||
                     model.column < 10 || model.column > 90)
-                {
                     return;
-                }
-
 
                 adjustMapSize();
                 adjustMapTable();
@@ -189,7 +190,6 @@
                 gridSize, gridSize);
             };
 
-
             var bgImg = document.createElement('img');
             bgImg.src='/images/game/bg_sprite.gif';
             bgImg.onload =  function(){
@@ -201,9 +201,48 @@
                 });
             };
 
+            function copyObject(from, to, exceptions)
+            {
+                for(var prop in  from)
+                {
+                    if(exceptions == null || $.inArray(prop,exceptions) == -1)
+                    {
+                        to[prop] = from[prop];
+                    }
+                }
+            }
 
+            $scope.loadMap = function(mapId){
+                MapService.get(mapId)
+                    .success(function(data){
+                        copyObject(data,$scope.map, ['exits']);
+                        $scope.map.row = data.grid.length;
+                        $scope.map.column = data.grid[0].length;
+                        $scope.map.isExisting = true;
+                        adjustMap();
+                    })
+                    .error(function(data){
 
-        });
+                    });
+            };
+
+            $scope.newMap = function(){
+                var data =MapService.createNew();
+                copyObject(data,$scope.map);
+                adjustMap();
+            };
+
+            $scope.save = function(){
+                MapService.save($scope.map)
+                    .success(function(data)
+                    {
+
+                    })
+                    .error(function(){
+
+                    });
+            };
+        }]);
 
 })(jQuery, angular, window);
 

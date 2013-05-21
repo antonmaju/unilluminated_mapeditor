@@ -116,5 +116,13 @@ module.exports ={
                 next(e);
             }
         }
+    },
+    mapSave : {
+        route :'/maps/:id',
+        method:'post',
+        handler: function(req, resp, next){
+            console.log(req.body);
+            next();
+        }
     }
 };
