@@ -2,6 +2,7 @@ var controllerHelper = require('../core/controllerHelpers'),
     fs = require('fs'),
     path = require('path'),
     q = require('q'),
+    CommonUtils = require('../core/commonUtils'),
     AreaTypes = require('../core/game/areaTypes'),
     ImageSource = require('../core/game/imageSource'),
     AssetFiles = require('../core/game/assetFiles'),
@@ -49,6 +50,63 @@ function populateAreaTypes(){
         }
     };
     return model;
+}
+
+function populateExitArea(arr,row, col){
+    //scan left
+
+
+}
+
+function populateExits(map){
+    map.exits ={};
+    var lArr =[], rArr=[], tArr =[], bArr=[];
+
+    //populate left
+    for(var i=1; i<map.row-1; i++)
+    {
+        if(map.grid[i][0] == 27)
+        {
+            populateExitArea(lArr,i,0);
+            break;
+        }
+    }
+
+    //populate top
+    for(var i=1; i<map.column-1; i++)
+    {
+        if(map.grid[0][i] == 27)
+        {
+            populateExitArea(tArr, 0,i);
+            break;
+        }
+    }
+
+    //populate right
+    for(var i=1; i<map.row-1; i++)
+    {
+        if(map.grid[i][map.column-1] == 27)
+        {
+            populateExitArea(rArr, i,map.column-1);
+            break;
+        }
+    }
+
+    //populate top
+    for(var i=1; i<map.column-1; i++)
+    {
+        if(map.grid[0][i] == 27)
+        {
+            populateExitArea(bArr, map.row-1,i);
+            break;
+        }
+    }
+
+    if(lArr.length > 0) map.exits.L = lArr;
+    if(tArr.length > 0) map.exits.T = tArr;
+    if(rArr.length > 0) map.exits.R = rArr;
+    if(bArr.length > 0) map.exits.B = bArr;
+
 }
 
 /**
@@ -121,8 +179,59 @@ module.exports ={
         route :'/maps/:id',
         method:'post',
         handler: function(req, resp, next){
-            console.log(req.body);
-            next();
+            var map = req.body.params;
+
+            function validateMap(map, errors){
+                var reId = /^[A-Za-z0-9]+$/;
+
+                if(!map.id || !reId.test(map.id))
+                    errors.push({prop:'id', message:'Id is invalid'});
+
+                console.log(CommonUtils.isInteger(map.row));
+                if(! CommonUtils.isInteger(map.row) || map.row <10 || map.row >90)
+                    errors.push({prop:'row', message:'Row is invalid'});
+
+                if(! CommonUtils.isInteger(map.column) || map.column < 10 || map.column > 90)
+                    errors.push({prop:'column', message: 'Column is invalid'});
+
+                if(! map.grid)
+                {
+                    errors.push({prop: 'grid', message: 'Grid is invalid'});
+                }
+                else
+                {
+                    var mapIssue = false;
+
+                    if(map.grid.length != map.row )
+                    {
+                        errors.push({prop:'row', message:'Total grid row is different'});
+                        mapIssue = true;
+                    }
+
+                    if(map.grid[0].length != map.column)
+                    {
+                        errors.push({prop:'column', message: 'Total grid column is different' });
+                        mapIssue = true;
+                    }
+
+                    if(! mapIssue)
+                    {
+
+
+                    }
+                }
+
+                return errors.length == 0;
+            }
+
+            var errors =[];
+            if(! validateMap(map, errors))
+            {
+                resp.json({success:false, errors: errors});
+                return;
+            }
+
+            resp.json({success:true});
         }
     }
 };

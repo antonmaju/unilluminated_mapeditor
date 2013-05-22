@@ -233,6 +233,9 @@
             };
 
             $scope.save = function(){
+                if($scope.form.$invalid)
+                    return;
+
                 MapService.save($scope.map)
                     .success(function(data)
                     {

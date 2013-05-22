@@ -19,26 +19,32 @@ block content
                                     a(ng-click='loadMap(\''+mapId+'\')')
                                         !=map
 
-                ul.nav.pull-right
-                    li
-                        a   Save
+                .pull-right
+                    a.btn.btn-primary(ng-disabled="form.$invalid",ng-click="save()")   Save
 
         div
-            form.form-horizontal
+            form.form-horizontal(novalidate, name="form")
                 fieldset
                     .control-group
                         label.control-label Id
                         .controls
-                            input#name(type="text", id="id",ng-model="map.id",required, ng-readonly="map.isExisting")
+                            input#id(type="text",name="id",ng-model="map.id",required,
+                            ng-readonly="map.isExisting")
+                            .alert.alert-error(ng-show="form.id.$invalid")
+                                | Id is invalid
                     .control-group
                         label.control-label Row
                         .controls
-                            input#map-row(type="number", min="10", max="90", ng-model="map.row" )
+                            input#map-row(type="number", name="row", min="10", max="90", ng-model="map.row" )
+                            .alert.alert-error(ng-show="form.row.$invalid")
+                                | Row is invalid
+
                     .control-group
                         label.control-label Column
                         .controls
-                            input#map-column(type="number",min="10", max="90", ng-model="map.column")
-
+                            input#map-column(name="column", type="number",min="10", max="90", ng-model="map.column")
+                            .alert.alert-error(ng-show="form.column.$invalid")
+                                | Column is invalid
                     .control
                         label.control-label Filter
                         .controls
