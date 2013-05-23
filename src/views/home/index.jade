@@ -21,8 +21,14 @@ block content
 
                 .pull-right
                     a.btn.btn-primary(ng-disabled="form.$invalid",ng-click="save()")   Save
+                    &nbsp;
+                    a.btn(ng-disabled="!map.isExisting",ng-click="delete()") Delete
 
         div
+            .alert.alert-error.alert-block(ng-show="alert.errors && alert.errors.length >0")
+                div(ng-repeat="error in alert.errors")
+                    | {{error.message}}
+
             form.form-horizontal(novalidate, name="form")
                 fieldset
                     .control-group

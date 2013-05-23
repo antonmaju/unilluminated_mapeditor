@@ -63,6 +63,9 @@
                 save : function(data){
                     return $http.post('/maps/'+data.id,
                         {params:data});
+                },
+                remove : function(mapId){
+                    return $http.post('/maps/delete/'+mapId, {});
                 }
             }
 
@@ -70,6 +73,7 @@
         .controller('MapController',['$scope', '$compile','MapService', function($scope, $compile, MapService){
             $scope.map = MapService.createNew();
             $scope.selectedArea = 0;
+            $scope.alert ={};
 
             var map = document.getElementById('map');
             var mapContext = map.getContext('2d');
@@ -219,10 +223,11 @@
                         $scope.map.row = data.grid.length;
                         $scope.map.column = data.grid[0].length;
                         $scope.map.isExisting = true;
+                        $scope.alert=null;
                         adjustMap();
                     })
                     .error(function(data){
-
+                        alert('Failed to load map!');
                     });
             };
 
@@ -230,21 +235,46 @@
                 var data =MapService.createNew();
                 copyObject(data,$scope.map);
                 adjustMap();
+                $scope.alert=null;
             };
 
             $scope.save = function(){
                 if($scope.form.$invalid)
                     return;
 
+                delete $scope.alert.errors;
+
                 MapService.save($scope.map)
                     .success(function(data)
                     {
-
+                        if(!data.success)
+                        {
+                            $scope.alert.errors = data.errors;
+                        }
+                        else
+                        {
+                            alert('Map was saved successfully!');
+                            window.document.location.href='/';
+                        }
                     })
                     .error(function(){
 
                     });
             };
+
+            $scope.delete = function(){
+                if(! confirm('Are you sure to delete '+$scope.map.id+' ?'))
+                    return;
+
+                MapService.remove($scope.map.id)
+                    .success(function(data){
+                        alert('Map was deleted successfully!');
+                        window.document.location.href='/';
+                    })
+                    .error(function(data){
+                        alert('Failed to delete '+ $scope.map.id);
+                    });
+            }
         }]);
 
 })(jQuery, angular, window);

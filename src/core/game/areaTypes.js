@@ -248,7 +248,7 @@ module.exports ={
         isWalkable:false
     },
     '46':{
-        desc:'start of area',
+        desc:'start of area (non exit)',
         srcKey:'end-of-area',
         bgKey : 'grass-road',
         isWalkable : true

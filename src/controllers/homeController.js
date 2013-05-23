@@ -8,6 +8,8 @@ var controllerHelper = require('../core/controllerHelpers'),
     AssetFiles = require('../core/game/assetFiles'),
     Filters = require('../core/game/filters');
 
+var exitArea =27;
+
 /**
  * Populate area types with asset information
  * @return {Object}
@@ -52,10 +54,31 @@ function populateAreaTypes(){
     return model;
 }
 
-function populateExitArea(arr,row, col){
-    //scan left
+function positionExists(arr,row, col){
+    for(var i=0; i<arr.length; i++){
+        if(arr[i].row == row && arr[i].column == col)
+            return true;
+    }
+    return false;
+}
 
+function populateExitArea(map, arr,row, col){
+    var grid= map.grid;
+    if(grid[row][col] != exitArea) return;
 
+    arr.push({row: row, column: col});
+
+    if(row > 0 && !positionExists(arr,row-1,col))
+        populateExitArea(map, arr, row-1,col);
+
+    if(row < map.row -1  && !positionExists(arr,row+1,col))
+        populateExitArea(map, arr, row+1, col);
+
+    if(col > 0 && !positionExists(arr, row, col-1))
+        populateExitArea(map, arr, row, col-1);
+
+    if(col < map.column - 1 && !positionExists(arr,row,col+1))
+        populateExitArea(map,arr, row, col+1);
 }
 
 function populateExits(map){
@@ -65,9 +88,9 @@ function populateExits(map){
     //populate left
     for(var i=1; i<map.row-1; i++)
     {
-        if(map.grid[i][0] == 27)
+        if(map.grid[i][0] == exitArea)
         {
-            populateExitArea(lArr,i,0);
+            populateExitArea(map, lArr,i,0);
             break;
         }
     }
@@ -75,9 +98,10 @@ function populateExits(map){
     //populate top
     for(var i=1; i<map.column-1; i++)
     {
-        if(map.grid[0][i] == 27)
+        if(map.grid[0][i] == exitArea)
         {
-            populateExitArea(tArr, 0,i);
+
+            populateExitArea(map,tArr, 0,i);
             break;
         }
     }
@@ -85,19 +109,19 @@ function populateExits(map){
     //populate right
     for(var i=1; i<map.row-1; i++)
     {
-        if(map.grid[i][map.column-1] == 27)
+        if(map.grid[i][map.column-1] == exitArea)
         {
-            populateExitArea(rArr, i,map.column-1);
+            populateExitArea(map,rArr, i,map.column-1);
             break;
         }
     }
 
-    //populate top
+    //populate bottom
     for(var i=1; i<map.column-1; i++)
     {
-        if(map.grid[0][i] == 27)
+        if(map.grid[0][i] == exitArea)
         {
-            populateExitArea(bArr, map.row-1,i);
+            populateExitArea(map,bArr, map.row-1,i);
             break;
         }
     }
@@ -187,7 +211,6 @@ module.exports ={
                 if(!map.id || !reId.test(map.id))
                     errors.push({prop:'id', message:'Id is invalid'});
 
-                console.log(CommonUtils.isInteger(map.row));
                 if(! CommonUtils.isInteger(map.row) || map.row <10 || map.row >90)
                     errors.push({prop:'row', message:'Row is invalid'});
 
@@ -216,8 +239,19 @@ module.exports ={
 
                     if(! mapIssue)
                     {
+                        populateExits(map);
 
-
+                        if(map.exits.L == undefined && map.exits.T == undefined && map.exits.R == undefined &&
+                            map.exits.B == undefined)
+                        {
+                            errors.push({prop:'grid', message:'Map should have exits'});
+                        }
+                        else
+                        {
+                            delete map.row;
+                            delete map.column;
+                            delete map.isExisting;
+                        }
                     }
                 }
 
@@ -225,13 +259,51 @@ module.exports ={
             }
 
             var errors =[];
+
             if(! validateMap(map, errors))
             {
                 resp.json({success:false, errors: errors});
                 return;
             }
 
-            resp.json({success:true});
+            var mapPath =  path.join(path.dirname(process.mainModule.filename),'core/game/maps',
+                map.id.toLowerCase()+'.js');
+
+
+            var newContent = 'module.exports = \r\n'+JSON.stringify(map,null,4) +';';
+            var writeFile = q.defer();
+
+            fs.writeFile(mapPath, newContent, function(err){
+                (err) ?  writeFile.reject(err) : writeFile.resolve();
+            });
+
+            writeFile.promise
+                .then(function(){
+                    resp.json({success:true});
+                }, function(reason){
+                    resp.json({success:false, errors:[{prop:'', msg:reason.toString()}]})
+                });
+        }
+    },
+    mapDelete:{
+        route :'/maps/delete/:id',
+        method:'post',
+        handler: function(req, resp, next){
+            var fileName=req.params.id.toLowerCase();
+            var mapPath =  path.join(path.dirname(process.mainModule.filename),'core/game/maps',
+                fileName+'.js');
+
+
+            delete require.cache[mapPath];
+            fs.unlink(mapPath, function(err){
+                if(err)
+                {
+
+                    next(err);
+                }
+                else
+                    resp.json({success:true});
+            });
         }
     }
 };

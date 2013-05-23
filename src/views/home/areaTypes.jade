@@ -4,4 +4,4 @@ ul.areas.clearfix
             canvas.area(data-src-url=areaType.srcUrl, data-src-top=areaType.srcTop,data-src-width=areaType.srcWidth,
             data-src-height=areaType.srcHeight, data-bg-top=areaType.bgTop, data-bg-width=areaType.bgWidth,
             data-bg-height=areaType.bgHeight, id='area'+areaType.id, ng-class='{selected : selectedArea == '+areaType.id+'}',
-            ng-click='selectAreaType('+areaType.id+')')
+            ng-click='selectAreaType('+areaType.id+')',title=areaType.desc)

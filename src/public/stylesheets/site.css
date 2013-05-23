@@ -5,3 +5,4 @@ body{background-color:#003366;}
 #map-wrapper{overflow:auto;margin:20px 25px;position:relative;height:350px;}
 #map{position:absolute;top:0;left:0;border:solid 1px #ccc;float:left;}
 #map-table{position:absolute;top:0;left:0;z-index:15;opacity:0.7;border-left:solid 1px #ccc;border-top:solid 1px #ccc;float:left;}#map-table .map-inner{border-bottom:1px solid #CCCCCC;border-right:1px solid #CCCCCC;float:left;height:31px;margin:0;padding:0;width:31px;}
+.controls .alert{width:200px;margin-bottom:0px;border:none 0px white;background-color:white;}
