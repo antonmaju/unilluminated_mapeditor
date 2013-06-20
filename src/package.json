@@ -1,6 +1,6 @@
 {
     "name": "unilluminated-mapeditor",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Map editor for unilluminated",
     "private": true,
     "scripts": {
